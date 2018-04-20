@@ -564,9 +564,14 @@ define copy-file-cp
 endef
 
 # Another way to skin the cat...
-# Note that install program by itself reports the 'SRC' -> 'DST" message
+# Note that install program by itself reports the 'SRC' -> 'DST' message
+# DST argument with a trailing slash would be considered a target dir,
+# otherwise it is assumed to be the complete final path with a filename.
 define copy-file-install
-	$(INSTALL) -D -T -p -v -m 644 "$1" "$2"
+	case "$2" in \
+	    */) $(INSTALL) -D -p -v -m 644 "$1" -t "$2" ;; \
+	    *)  $(INSTALL) -D -T -p -v -m 644 "$1" "$2" ;; \
+	esac
 endef
 
 # Generalize the two solutions
