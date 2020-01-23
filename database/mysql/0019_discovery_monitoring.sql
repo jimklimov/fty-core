@@ -96,7 +96,7 @@ INSERT IGNORE INTO t_bios_nut_configuration_type
 VALUES
 (1, 'Driver snmpv1 ups', 'snmp-ups', '${asset.ext.ip.1}'),
 (2, 'Driver snmpv3 ups', 'snmp-ups', '${asset.ext.ip.1}'),
-(3, 'Driver xmlv3 ups', 'net-xml', 'http://{asset.ext.ip.1}:${asset.ext.port.http}');
+(3, 'Driver xmlv3 ups', 'netxml-ups', 'http://${asset.ext.ip.1}');
 
 /* NUT configuration */
 CREATE TABLE IF NOT EXISTS t_bios_nut_configuration(
