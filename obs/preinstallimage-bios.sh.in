@@ -747,7 +747,7 @@ EOF
 # TODO: revise the list of 42ity services here
 if [ -f /usr/bin/zabbix_agent ]; then
 for i in mysql tntnet@bios malamute \
-    bios-db bios-agent-inventory bios-agent-nut bios-driver-netmon \
+    bios-db bios-agent-nut bios-driver-netmon \
     nut-driver nut-monitor systemd-journald \
 ; do
    find /lib /usr -name "$i".service | while read file; do
@@ -940,6 +940,14 @@ cat > /etc/default/ip6tables <<[eof]
 -A OUTPUT -j ACCEPT
 COMMIT
 [eof]
+
+# Accept tcp port 5005 for devel image (append files)
+case "$IMGTYPE" in
+    *devel*)
+        sed -i '/tcp --dport 4222/a\-A INPUT -p tcp -m tcp --dport 5005 -j ACCEPT' /etc/default/iptables
+        sed -i '/tcp --dport 4222/a\-A INPUT -p tcp -m tcp --dport 5005 -j ACCEPT' /etc/default/ip6tables
+        ;;
+esac
 
 # install iptables filtering end
 #########################################################################
