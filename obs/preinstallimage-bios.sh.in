@@ -601,6 +601,18 @@ mkdir -p /etc/malamute
 cp /usr/share/fty/examples/config/malamute/malamute.cfg /etc/malamute
 /bin/systemctl enable malamute
 
+# Fix up where mariadb listens
+case "$IMGTYPE" in
+    *devel*) ;; # let it be for testing and developers
+    deploy|*)
+cat > /etc/my.cnf.d/localhost.cnf << EOF
+[mysqld]
+bind-address = 127.0.0.1
+port = 3306
+EOF
+        ;;
+esac
+
 # Disable and mask the vendor-packaged mysql services - the database will
 # be started after first boot and license acceptance, and wrapped by our
 # own fty-db-engine customized service anyway.
@@ -634,18 +646,6 @@ esac
 # If this OS image is based on a newer distro without rcmysql,
 # then provide ours right in the image
 /usr/share/fty/setup/20-rcmysql-transient.sh
-
-# Fix up where mariadb listens
-case "$IMGTYPE" in
-    *devel*) ;; # let it be for testing and developers
-    deploy|*)
-cat > /etc/my.cnf.d/localhost.cnf << EOF
-[mysqld]
-bind-address = 127.0.0.1
-port = 3306
-EOF
-        ;;
-esac
 
 # Enable 42ity services (distributed as a systemd preset file)
 # NOTE that in Debian 10 this seems to also process ALL service files
