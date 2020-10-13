@@ -739,21 +739,25 @@ verify_threeway_checksum() {
 fetch_file() {
     # Caller can provide envvars CHECK_ONLY=yes (globally to not download
     # for updating) and MAYBE_EMPTY=yes to allow empty files (by default not)
-    # and FETCH_VERBOSE=yes/no.
+    # and FETCH_VERBOSE=yes/no. Alternately CHECK_EXISTS=yes to just probe
+    # if the server agrees to serve the URL (returns code 0 if URL is usable
+    # verbatim or with compressed suffix, and the suffix if any on stdout).
     # TODO: TFTP support, busybox can do it
     # TODO: Test with https - can require custom CA trust configuration, etc.
     # TODO: Use our common requester as a wrapper for real/busybox wget/curl
     # TODO: Make a common routine to list remote directories (e.g. http-dir parsing, ftp, tftp, localfs...)
     local URL="$1"
     local FILE="$2"
-    local FINALFILE="$2"
+    local FINALFILE="$2" # Can differ from FILE in the end, if e.g. a compressed variant was found and used
     local RES=0
     local FETCH_FLAGS=""
+    local FETCH_CHECK_EXISTS_FLAGS=""
     local FETCHER=wget
 
     case "$FETCHER" in
-        # TODO : Generalize for curl, local "cp", tftp...
+        # TODO : Generalize for curl; tftp; local "cp" and "ls" or "test" to check existance...
         wget*)
+            FETCH_CHECK_EXISTS_FLAGS="-q -O - --spider" # Returns 0 if the URL exists on server
             if [ x"${FETCH_VERBOSE-}" = xyes ] ; then
                 FETCH_FLAGS="-O -"
             else
@@ -761,6 +765,24 @@ fetch_file() {
             fi
             ;;
     esac
+
+    if [ "${CHECK_EXISTS-}" = yes ]; then
+        case "$URL" in
+        *.gz)
+            $FETCHER $FETCH_CHECK_EXISTS_FLAGS "${URL}" 2>/dev/null >/dev/null \
+            && echo "" \
+            || RES=$?
+            ;;
+        *) # Check if original URL exists, else if compressed one exists
+            $FETCHER $FETCH_CHECK_EXISTS_FLAGS "${URL}" 2>/dev/null >/dev/null \
+            && echo "" \
+            || { $FETCHER $FETCH_CHECK_EXISTS_FLAGS "${URL}.gz" 2>/dev/null >/dev/null \
+                 && echo ".gz" ; } \
+            || RES=$?
+            ;;
+        esac
+        return $RES
+    fi
 
     if [ x"$FILE" = x- ] || [ x"$FILE" = x ] || [ x"$FILE" = xstdout ] ; then
         FILE=stdout
