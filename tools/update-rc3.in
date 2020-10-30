@@ -980,6 +980,9 @@ download_rawfwimage_generic() (
             IMAGE_URL="`${IMAGEFINDER_ROUTINE} ${1:-$SOURCESITEROOT_THISIMAGE}`" && [ -n "$IMAGE_URL" ] \
             && logmsg_info "${CALLER_ROUTINE}() detected '$IMAGE_URL' as the newest remote ${RAW_DEVICE_NODE:+raw }$REPORT_IMAGETYPE" \
             || { logmsg_error "Could not find any remote ${RAW_DEVICE_NODE:+raw }$REPORT_IMAGETYPE"; IMAGE_URL="";} ;;
+        *://*.gz)
+            logmsg_info "${CALLER_ROUTINE}() was asked to try downloading '$1' as the ${RAW_DEVICE_NODE:+raw }$REPORT_IMAGETYPE; will check for uncompressed variant too"
+            IMAGE_URL="`echo "$1" | sed 's/\.gz$//'`" ;;
         *://*)
             logmsg_info "${CALLER_ROUTINE}() was asked to try downloading '$1' as the ${RAW_DEVICE_NODE:+raw }$REPORT_IMAGETYPE"
             IMAGE_URL="$1" ;;
