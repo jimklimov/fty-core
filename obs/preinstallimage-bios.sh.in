@@ -378,6 +378,15 @@ if [ -e /lib/udev/rules.d/80-net-setup-link.rules ] || [ -e /usr/lib/udev/rules.
     ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
 fi
 
+if [ -x /sbin/resolvconf ] && [ -x /usr/bin/resolvectl ] && [ ! -x /usr/bin/resolvconf ] \
+&& [ "`/bin/systemctl show -p UnitFileState systemd-resolved.service 2>/dev/null`" = "UnitFileState=enabled" ] \
+; then
+    # Similar trick to what arch linux systemd-resolvconf package does
+    echo "Enabling systemd-resolvconf instead of native one" >&2
+    mv -f /sbin/resolvconf{,.orig} && \
+    ln -fs ../usr/bin/resolvectl /sbin/resolvconf
+fi
+
 cat > /etc/resolv.conf <<EOF
 nameserver 8.8.8.8
 nameserver 8.8.4.4
